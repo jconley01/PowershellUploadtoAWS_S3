@@ -1,0 +1,16 @@
+#the below shows how to use a native powershell command to upload files to an AWS S3 bucket without the need to install AWSCLI
+#I did this because I needed a way for my clients to be able to annonymously upload files to an S3 bucket to report on status when not on a corporate network
+#you will need to follow these instructions to allow your bucket to receive public uploads.  Please set the permissions for the bucket properly so its not wide open.
+#https://docs.aws.amazon.com/cli/latest/reference/s3api/put-object-acl.html
+
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Host","<replacewithbucketname>.s3.amazonaws.com")
+$headers.Add("ContentType","application/octet-stream")
+#if needed you could add authentication here as well
+
+#in this example we will create a file with the hostname of the computer doing the uploading
+$hostname = hostname #get the hostname of the computer
+New-Item -Path . -Name "$hostname.txt" -ItemType "file" -Value "add the body of the file here" -Force
+$filename = $hostname + ".txt"
+
+Invoke-WebRequest -Method PUT -InFile $filename -ContentType "application/octet-stream" -Headers $headers http://<bucketname>.s3.amazonaws.com/<foldername>/$filename
